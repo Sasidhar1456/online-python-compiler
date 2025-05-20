@@ -1,25 +1,32 @@
-# Use Node.js base image with Debian (includes apt)
+# Use Node.js image with Debian (so we can install Python)
 FROM node:18
 
-# Install Python, pip, and build tools
+# Install Python, venv module, and build tools
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-dev build-essential && \
+    apt-get install -y python3 python3-pip python3-venv build-essential && \
     apt-get clean
 
 # Set working directory
 WORKDIR /app
 
-# Copy files to container
+# Copy project files to the container
 COPY . .
 
 # Install Node.js dependencies
 RUN npm install
 
-# Upgrade pip & install Flask
-RUN pip3 install --upgrade pip && pip3 install flask
+# Create Python virtual environment
+RUN python3 -m venv /app/venv
 
-# Expose app port
+# Activate virtual environment and install Flask
+RUN /app/venv/bin/pip install --upgrade pip && \
+    /app/venv/bin/pip install flask
+
+# Expose the port your app runs on
 EXPOSE 3000
 
-# Start the app
+# Set environment variable for Python app to use venv
+ENV PATH="/app/venv/bin:$PATH"
+
+# Start your Node.js server
 CMD ["node", "index.js"]
