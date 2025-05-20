@@ -3,7 +3,7 @@ import io from "socket.io-client";
 import Editor from "./components/Editor.jsx";  
 import Terminal from "./components/Terminal.jsx";  
 
-const socket = io("http://localhost:5000"); // Backend runs on port 5000 by default :contentReference[oaicite:20]{index=20}.
+const socket = io("https://online-python-compiler-production.up.railway.app:8080"); // Backend runs on port 5000 by default :contentReference[oaicite:20]{index=20}.
 
 export default function App() {
   const [output, setOutput] = useState("");  
