@@ -1,25 +1,25 @@
-# Use official Node image with Debian backend (so we can install Python)
+# Use Node.js base image with Debian (includes apt)
 FROM node:18
 
-# Install Python and pip
+# Install Python, pip, and build tools
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip && \
+    apt-get install -y python3 python3-pip python3-dev build-essential && \
     apt-get clean
 
 # Set working directory
 WORKDIR /app
 
-# Copy files from local to container
+# Copy files to container
 COPY . .
 
 # Install Node.js dependencies
 RUN npm install
 
-# Install Python packages directly (without requirements.txt)
-RUN pip3 install flask
+# Upgrade pip & install Flask
+RUN pip3 install --upgrade pip && pip3 install flask
 
 # Expose app port
 EXPOSE 3000
 
-# Start your Node.js server
+# Start the app
 CMD ["node", "index.js"]
