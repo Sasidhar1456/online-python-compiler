@@ -52,18 +52,18 @@ export default function App() {
       <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
 
         {/* Editor Section */}
-        <div className="w-full md:w-1/2 p-2">
+        <div className="w-full md:w-1/2 p-2 h-[45vh] md:h-[90vh]">
           <Editor codeRef={codeRef} />
           <button
             onClick={runCode}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-2 md:mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Run Code
           </button>
         </div>
 
         {/* Terminal Section */}
-        <div className="w-full md:w-1/2 h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
+        <div className=" ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
           <Terminal
             output={output}
             awaitingInput={awaitingInput}

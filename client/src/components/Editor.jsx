@@ -1,19 +1,38 @@
-import React, { useRef, useEffect } from "react";  
-import { Editor } from "@monaco-editor/react";  
+import React, { useRef, useEffect, useState } from "react";
+import { Editor } from "@monaco-editor/react";
 
 export default function CodeEditor({ codeRef }) {
-  const defaultCode = `\n\n#This is created for an assignment purpose by Sasidhar Pinjala\n\nnum1 = int(input("Enter your 1st number: "))\n
-num2 = int(input("Enter your 2nd number: "))\n
-print(f"The sum of {num1} and {num2} is {num1 + num2}")`;
+  const [editorHeight, setEditorHeight] = useState("90vh");
 
-  // Initialize codeRef with default code on mount
+  const defaultCode = `
+# This is created for an assignment purpose by Sasidhar Pinjala
+
+num1 = int(input("Enter your 1st number: "))
+num2 = int(input("Enter your 2nd number: "))
+print(f"The sum of {num1} and {num2} is {num1 + num2}")
+`;
+
+  // Initialize codeRef and handle responsive height
   useEffect(() => {
     codeRef.current = defaultCode;
-  }, []);
+
+    const updateHeight = () => {
+      if (window.innerWidth < 768) {
+        setEditorHeight("45vh");
+      } else {
+        setEditorHeight("90vh");
+      }
+    };
+
+    updateHeight(); // Set height on mount
+    window.addEventListener("resize", updateHeight); // Update on resize
+
+    return () => window.removeEventListener("resize", updateHeight); // Cleanup
+  }, [codeRef, defaultCode]);
 
   return (
     <Editor
-      height="90vh"
+      height={editorHeight}
       defaultLanguage="python"
       defaultValue={defaultCode}
       theme="vs-dark"
