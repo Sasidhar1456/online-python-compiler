@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";  
-import io from "socket.io-client";  
-import Editor from "./components/Editor.jsx";  
-import Terminal from "./components/Terminal.jsx";  
+import React, { useState, useEffect, useRef } from "react";
+import io from "socket.io-client";
+import Editor from "./components/Editor.jsx";
+import Terminal from "./components/Terminal.jsx";
 
 const socket = io("https://online-python-compiler-production.up.railway.app"); // Backend runs on port 5000 by default :contentReference[oaicite:20]{index=20}.
 
 export default function App() {
-  const [output, setOutput] = useState("");  
-  const [awaitingInput, setAwaitingInput] = useState(false);  
-  const [prompt, setPrompt] = useState("");  
-  const [inputValue, setInputValue] = useState("");  
+  const [output, setOutput] = useState("");
+  const [awaitingInput, setAwaitingInput] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [inputValue, setInputValue] = useState("");
   const codeRef = useRef("");
 
   useEffect(() => {
     // Listen for stdout events from server
     socket.on("stdout", (data) => {
-      setOutput((prev) => prev + data);  
+      setOutput((prev) => prev + data);
       // If Python expects input (detect trailing colon), set awaitingInput to true
       if (data.trim().endsWith(":")) {
         setAwaitingInput(true);
@@ -35,22 +35,24 @@ export default function App() {
 
   // Handle sending code to server
   const runCode = () => {
-    setOutput("");  
+    setOutput("");
     socket.emit("runCode", codeRef.current);
   };
 
   // Handle user entering input when Python prompts
   const sendInput = () => {
-    socket.emit("stdin", inputValue);  
-    setOutput((prev) => prev + inputValue + "\n");  
-    setInputValue("");  
+    socket.emit("stdin", inputValue);
+    setOutput((prev) => prev + inputValue + "\n");
+    setInputValue("");
     setAwaitingInput(false);
   };
 
   return (
     <div className="h-screen flex flex-col">
-      <div className="flex-grow flex overflow-hidden">
-        <div className="w-1/2 p-2">
+      <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
+
+        {/* Editor Section */}
+        <div className="w-full md:w-1/2 p-2">
           <Editor codeRef={codeRef} />
           <button
             onClick={runCode}
@@ -59,7 +61,9 @@ export default function App() {
             Run Code
           </button>
         </div>
-        <div className="w-1/2 h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
+
+        {/* Terminal Section */}
+        <div className="w-full md:w-1/2 h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
           <Terminal
             output={output}
             awaitingInput={awaitingInput}
@@ -70,5 +74,6 @@ export default function App() {
         </div>
       </div>
     </div>
+
   );
 }
