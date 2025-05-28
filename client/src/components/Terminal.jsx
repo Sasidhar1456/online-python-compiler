@@ -15,24 +15,36 @@ export default function Terminal({
     }
   }, [awaitingInput]);
 
+  // Split output into lines
+  const outputLines = output.split("\n");
+
   return (
-    <div className="h-full flex flex-col">
-      {awaitingInput && (
-        <div className="p-2 bg-gray-800">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") sendInput();
-            }}
-            className="w-full bg-black text-green-400 font-mono p-1 focus:outline-none"
-            placeholder="Type input here and press Enter..."
-          />
+    <div className="h-full flex flex-col bg-black text-green-400 font-mono p-2">
+      <div className="flex-grow whitespace-pre-wrap">
+        {outputLines.slice(0, -1).map((line, index) => (
+          <div key={index}>{line}</div>
+        ))}
+        
+        <div className="flex items-center flex-wrap">
+          {/* Last line of output */}
+          <span>{outputLines[outputLines.length - 1]}</span>
+
+          {/* Inline input */}
+          {awaitingInput && (
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") sendInput();
+              }}
+              className="bg-black text-green-400 font-mono p-1 focus:outline-none ml-1 flex-1"
+              placeholder=""
+            />
+          )}
         </div>
-      )}
-      <div className="flex-grow whitespace-pre-wrap p-2">{output.trim() === "" ? "The output will be displayed here." : output}</div>
+      </div>
     </div>
   );
 }
