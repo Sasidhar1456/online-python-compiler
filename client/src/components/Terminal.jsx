@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 
 export default function Terminal({
   output,
@@ -6,16 +6,14 @@ export default function Terminal({
   inputValue,
   setInputValue,
   sendInput,
+  inputRef, // ✅ Receive ref from App
 }) {
-  const inputRef = useRef(null);
-
   useEffect(() => {
-    if (awaitingInput && inputRef.current) {
+    if (awaitingInput && inputRef?.current) {
       inputRef.current.focus();
     }
-  }, [awaitingInput]);
+  }, [awaitingInput, inputRef]);
 
-  // Split output into lines
   const outputLines = output.split("\n");
 
   return (
@@ -24,12 +22,10 @@ export default function Terminal({
         {outputLines.slice(0, -1).map((line, index) => (
           <div key={index}>{line}</div>
         ))}
-        
+
         <div className="flex items-center flex-wrap">
-          {/* Last line of output */}
           <span>{outputLines[outputLines.length - 1]}</span>
 
-          {/* Inline input */}
           {awaitingInput && (
             <input
               ref={inputRef}

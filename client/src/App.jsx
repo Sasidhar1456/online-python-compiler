@@ -3,7 +3,7 @@ import io from "socket.io-client";
 import Editor from "./components/Editor.jsx";
 import Terminal from "./components/Terminal.jsx";
 
-const socket = io("https://online-python-compiler-production.up.railway.app"); // Backend runs on port 5000 by default :contentReference[oaicite:20]{index=20}.
+const socket = io("https://online-python-compiler-production.up.railway.app");
 
 export default function App() {
   const [output, setOutput] = useState("The output will be displayed here.");
@@ -11,18 +11,19 @@ export default function App() {
   const [prompt, setPrompt] = useState("");
   const [inputValue, setInputValue] = useState("");
   const codeRef = useRef("");
+  const inputRef = useRef(null); // ✅ Add ref to manage focus from parent
 
   useEffect(() => {
-    // Listen for stdout events from server
     socket.on("stdout", (data) => {
       setOutput((prev) => prev + data);
-      // If Python expects input (detect trailing colon), set awaitingInput to true
       if (data.trim().endsWith(":")) {
         setAwaitingInput(true);
+        setTimeout(() => {
+          if (inputRef.current) inputRef.current.focus(); // ✅ Always focus on input
+        }, 100);
       }
     });
 
-    // Listen for process end
     socket.on("processEnd", () => {
       setAwaitingInput(false);
     });
@@ -33,13 +34,17 @@ export default function App() {
     };
   }, []);
 
-  // Handle sending code to server
   const runCode = () => {
     setOutput("");
+    setInputValue("");
     socket.emit("runCode", codeRef.current);
+
+    // If already awaiting input, manually refocus
+    setTimeout(() => {
+      if (inputRef.current) inputRef.current.focus();
+    }, 300); // ✅ Give time for stdout to arrive and render
   };
 
-  // Handle user entering input when Python prompts
   const sendInput = () => {
     socket.emit("stdin", inputValue);
     setOutput((prev) => prev + inputValue + "\n");
@@ -50,8 +55,6 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col">
       <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
-
-        {/* Editor Section */}
         <div className="w-full md:w-1/2 p-2 h-[45vh] md:h-[90vh]">
           <Editor codeRef={codeRef} />
           <button
@@ -62,7 +65,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* Terminal Section */}
         <div className=" ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
           <Terminal
             output={output}
@@ -70,10 +72,10 @@ export default function App() {
             inputValue={inputValue}
             setInputValue={setInputValue}
             sendInput={sendInput}
+            inputRef={inputRef} // ✅ Pass down inputRef to Terminal
           />
         </div>
       </div>
     </div>
-
   );
 }
