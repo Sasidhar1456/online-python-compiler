@@ -6,7 +6,7 @@ import Terminal from "./components/Terminal.jsx";
 const socket = io("https://online-python-compiler-production.up.railway.app"); // Backend runs on port 5000 by default :contentReference[oaicite:20]{index=20}.
 
 export default function App() {
-  const [output, setOutput] = useState("");
+  const [output, setOutput] = useState("The output will be displayed here.");
   const [awaitingInput, setAwaitingInput] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [inputValue, setInputValue] = useState("");
