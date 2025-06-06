@@ -19,7 +19,7 @@ print(f"The sum of {num1} and {num2} is {num1 + num2}")
       if (window.innerWidth < 768) {
         setEditorHeight("45vh");
       } else {
-        setEditorHeight("90vh");
+        setEditorHeight("80vh");
       }
     };
 

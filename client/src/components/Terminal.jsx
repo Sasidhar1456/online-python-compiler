@@ -18,12 +18,12 @@ export default function Terminal({
 
   return (
     <div className="h-full flex flex-col bg-black text-green-400 font-mono p-2">
-      <div className="flex-grow whitespace-pre-wrap">
+      <div className="flex-grow whitespace-pre-wrap overflow-y-auto">
         {outputLines.slice(0, -1).map((line, index) => (
           <div key={index}>{line}</div>
         ))}
 
-        <div className="flex items-center flex-wrap">
+        <div className="flex items-center whitespace-nowrap">
           <span>{outputLines[outputLines.length - 1]}</span>
 
           {awaitingInput && (
@@ -35,7 +35,7 @@ export default function Terminal({
               onKeyDown={(e) => {
                 if (e.key === "Enter") sendInput();
               }}
-              className="bg-black text-green-400 font-mono p-1 focus:outline-none ml-1 flex-1"
+              className="bg-black text-green-400 font-mono p-1 focus:outline-none ml-2 flex-shrink w-auto"
               placeholder=""
             />
           )}

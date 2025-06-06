@@ -62,9 +62,19 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
-        <div className="w-full md:w-1/2 p-2 h-[45vh] md:h-[90vh]">
+    <div className="h-screen flex flex-col bg-gray-900">
+      {/* Header Title */}
+      <div className="text-center py-4 ">
+        <h1 className="text-3xl md:text-4xl font-bold text-white ">
+          Online Python Compiler 
+        </h1>
+      </div>
+
+      {/* Main Layout */}
+      <div className="flex-grow flex flex-col md:flex-row ">
+
+        {/* Editor Section */}
+        <div className="w-full md:w-1/2 p-2 h-[45vh] md:h-[80vh]">
           <Editor codeRef={codeRef} />
 
           <div className="flex gap-4 mt-2 md:mt-4">
@@ -114,7 +124,8 @@ export default function App() {
           </div>
         </div>
 
-        <div className="ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
+        {/* Terminal Section */}
+        <div className="ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[80vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
           <Terminal
             output={output}
             awaitingInput={awaitingInput}
