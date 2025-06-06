@@ -12,7 +12,6 @@ num2 = int(input("Enter your 2nd number: "))
 print(f"The sum of {num1} and {num2} is {num1 + num2}")
 `;
 
-  // Initialize codeRef and handle responsive height
   useEffect(() => {
     codeRef.current = defaultCode;
 
@@ -24,10 +23,10 @@ print(f"The sum of {num1} and {num2} is {num1 + num2}")
       }
     };
 
-    updateHeight(); // Set height on mount
-    window.addEventListener("resize", updateHeight); // Update on resize
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
 
-    return () => window.removeEventListener("resize", updateHeight); // Cleanup
+    return () => window.removeEventListener("resize", updateHeight);
   }, [codeRef, defaultCode]);
 
   return (

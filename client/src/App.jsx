@@ -8,10 +8,11 @@ const socket = io("https://online-python-compiler-production.up.railway.app");
 export default function App() {
   const [output, setOutput] = useState("The output will be displayed here.");
   const [awaitingInput, setAwaitingInput] = useState(false);
-  const [prompt, setPrompt] = useState("");
   const [inputValue, setInputValue] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const codeRef = useRef("");
-  const inputRef = useRef(null); // ✅ Add ref to manage focus from parent
+  const inputRef = useRef(null);
 
   useEffect(() => {
     socket.on("stdout", (data) => {
@@ -19,13 +20,14 @@ export default function App() {
       if (data.trim().endsWith(":")) {
         setAwaitingInput(true);
         setTimeout(() => {
-          if (inputRef.current) inputRef.current.focus(); // ✅ Always focus on input
+          inputRef.current?.focus();
         }, 100);
       }
     });
 
     socket.on("processEnd", () => {
       setAwaitingInput(false);
+      setLoading(false);
     });
 
     return () => {
@@ -37,12 +39,19 @@ export default function App() {
   const runCode = () => {
     setOutput("");
     setInputValue("");
+    setLoading(true);
     socket.emit("runCode", codeRef.current);
 
-    // If already awaiting input, manually refocus
     setTimeout(() => {
-      if (inputRef.current) inputRef.current.focus();
-    }, 300); // ✅ Give time for stdout to arrive and render
+      inputRef.current?.focus();
+    }, 300);
+  };
+
+  const stopExecution = () => {
+    socket.emit("stopExecution");
+    setAwaitingInput(false);
+    setLoading(false);
+    setOutput((prev) => prev + "\n[Execution Stopped by User]\n");
   };
 
   const sendInput = () => {
@@ -57,22 +66,62 @@ export default function App() {
       <div className="flex-grow flex flex-col md:flex-row overflow-hidden">
         <div className="w-full md:w-1/2 p-2 h-[45vh] md:h-[90vh]">
           <Editor codeRef={codeRef} />
-          <button
-            onClick={runCode}
-            className="mt-2 md:mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Run Code
-          </button>
+
+          <div className="flex gap-4 mt-2 md:mt-4">
+            <button
+              onClick={runCode}
+              disabled={loading}
+              className={`px-4 py-2 rounded-lg text-white 
+                ${loading ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+            >
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                  <span>Running...</span>
+                </div>
+              ) : (
+                "Run Code"
+              )}
+            </button>
+
+            {loading && (
+              <button
+                onClick={stopExecution}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+              >
+                Stop
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className=" ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
+        <div className="ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[90vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
           <Terminal
             output={output}
             awaitingInput={awaitingInput}
             inputValue={inputValue}
             setInputValue={setInputValue}
             sendInput={sendInput}
-            inputRef={inputRef} // ✅ Pass down inputRef to Terminal
+            inputRef={inputRef}
           />
         </div>
       </div>

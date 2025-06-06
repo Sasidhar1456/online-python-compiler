@@ -6,7 +6,7 @@ export default function Terminal({
   inputValue,
   setInputValue,
   sendInput,
-  inputRef, // ✅ Receive ref from App
+  inputRef,
 }) {
   useEffect(() => {
     if (awaitingInput && inputRef?.current) {

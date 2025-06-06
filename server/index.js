@@ -23,13 +23,13 @@ const io = new SocketIOServer(server, {
   },
 });
 
-// 3. Handle each new client connection once
+// 3. Handle each new client connection
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
   let pyProcess = null;
 
-  // 3a. Handle stdin input from client
+  // Handle stdin input from client
   socket.on("stdin", (input) => {
     if (pyProcess && !pyProcess.killed) {
       console.log("Writing to Python stdin:", input);
@@ -37,11 +37,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 3b. Handle code execution
+  // Handle code execution
   socket.on("runCode", (code) => {
     console.log("Received runCode with code:", code);
 
     const filePath = path.join(process.cwd(), "tempCode.py");
+
     try {
       fs.writeFileSync(filePath, code);
       console.log("Wrote code to tempCode.py");
@@ -51,8 +52,10 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // Spawn Python process
     pyProcess = spawn("python", ["-u", filePath]);
 
+    // Standard output from Python
     pyProcess.stdout.removeAllListeners("data");
     pyProcess.stdout.on("data", (data) => {
       const text = data.toString();
@@ -64,6 +67,7 @@ io.on("connection", (socket) => {
       }
     });
 
+    // Standard error from Python
     pyProcess.stderr.removeAllListeners("data");
     pyProcess.stderr.on("data", (data) => {
       const text = data.toString();
@@ -71,21 +75,34 @@ io.on("connection", (socket) => {
       socket.emit("stdout", text);
     });
 
-    socket.once("disconnect", () => {
-      if (pyProcess && !pyProcess.killed) {
-        pyProcess.kill();
-      }
-    });
-
+    // Handle Python process end
     pyProcess.removeAllListeners("close");
     pyProcess.once("close", (exitCode) => {
       console.log(`Python process exited with code ${exitCode}`);
       socket.emit("stdout", `\n[Finished with code ${exitCode}]\n`);
       socket.emit("processEnd");
     });
+
+    // Clean up on disconnect
+    socket.once("disconnect", () => {
+      console.log(`Client disconnected: ${socket.id}`);
+      if (pyProcess && !pyProcess.killed) {
+        pyProcess.kill();
+      }
+    });
   });
 
-  // 3c. Handle disconnection
+  // Handle manual stopExecution event from frontend
+  socket.on("stopExecution", () => {
+    if (pyProcess && !pyProcess.killed) {
+      console.log("Execution manually stopped by user");
+      pyProcess.kill();
+      socket.emit("stdout", "\n[Execution Stopped by User]\n");
+      socket.emit("processEnd");
+    }
+  });
+
+  // Handle unexpected disconnection
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
     if (pyProcess && !pyProcess.killed) {
