@@ -5,7 +5,7 @@ export default function CodeEditor({ codeRef }) {
   const [editorHeight, setEditorHeight] = useState("90vh");
 
   const defaultCode = `
-# This is created for an assignment purpose by Sasidhar Pinjala
+# You can write the code here.
 
 num1 = int(input("Enter your 1st number: "))
 num2 = int(input("Enter your 2nd number: "))
