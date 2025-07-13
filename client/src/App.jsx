@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import io from "socket.io-client";
-import Editor from "./components/Editor.jsx";
+import CodeEditor from "./components/Editor.jsx";
 import Terminal from "./components/Terminal.jsx";
 
-const socket = io("https://online-python-compiler-production.up.railway.app");
+let socket;
 
 export default function App() {
-  const [output, setOutput] = useState("The output will be displayed here.");
+  const [output, setOutput] = useState("The output will be displayed here.\n");
   const [awaitingInput, setAwaitingInput] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,24 +14,35 @@ export default function App() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    socket.on("stdout", (data) => {
+    socket = new WebSocket("wss://compiler-ylxl.onrender.com/ws/python"); // ✅ FIXED QUOTES
+
+    socket.onopen = () => console.log("Connected to WebSocket ✅");
+    socket.onmessage = (event) => {
+      const data = event.data;
       setOutput((prev) => prev + data);
+
       if (data.trim().endsWith(":")) {
         setAwaitingInput(true);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 100);
       }
-    });
 
-    socket.on("processEnd", () => {
-      setAwaitingInput(false);
+      if (data.includes("processEnd")) {
+        setAwaitingInput(false);
+        setLoading(false);
+      }
+    };
+
+    socket.onclose = () => {
+      console.log("WebSocket disconnected ❌");
       setLoading(false);
-    });
+    };
+
+    socket.onerror = (err) => console.error("WebSocket error:", err);
 
     return () => {
-      socket.off("stdout");
-      socket.off("processEnd");
+      socket.close();
     };
   }, []);
 
@@ -40,79 +50,50 @@ export default function App() {
     setOutput("");
     setInputValue("");
     setLoading(true);
-    socket.emit("runCode", codeRef.current);
-
+    socket.send("runCode:" + codeRef.current);
     setTimeout(() => {
       inputRef.current?.focus();
     }, 300);
   };
 
   const stopExecution = () => {
-    socket.emit("stopExecution");
+    socket.send("stopExecution");
     setAwaitingInput(false);
     setLoading(false);
     setOutput((prev) => prev + "\n[Execution Stopped by User]\n");
   };
 
   const sendInput = () => {
-    socket.emit("stdin", inputValue);
+    socket.send("stdin:" + inputValue);
     setOutput((prev) => prev + inputValue + "\n");
     setInputValue("");
     setAwaitingInput(false);
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900">
-      {/* Header Title */}
-      <div className="text-center py-4 ">
-        <h1 className="text-3xl md:text-4xl font-bold text-white ">
-          Online Python Compiler 
-        </h1>
+    <div className="h-full flex flex-col bg-gray-900">
+      <div className="text-center py-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-white">Online Python Compiler</h1>
       </div>
 
-      {/* Main Layout */}
-      <div className="flex-grow flex flex-col md:flex-row ">
+      <div className="flex-grow flex flex-col md:flex-row h-[90%]">
+        {/* Editor */}
+        <div className="w-full md:w-1/2 p-2 h-[45%] md:h-[100%]">
+          <div className="bg-[#1e1e1e] m-0 p-2 rounded-t-lg inline-block">
+            <span className="text-white  inline m-0">temp.py</span>
 
-        {/* Editor Section */}
-        <div className="w-full md:w-1/2 p-2 h-[45vh] md:h-[80vh]">
-          <Editor codeRef={codeRef} />
-
+          </div>
+          <CodeEditor codeRef={codeRef}  />
           <div className="flex gap-4 mt-2 md:mt-4">
             <button
               onClick={runCode}
               disabled={loading}
-              className={`px-4 py-2 rounded-lg text-white 
-                ${loading ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+              className={`px-4 py-2 rounded-lg text-white ${
+                loading ? "bg-gray-500 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path>
-                  </svg>
-                  <span>Running...</span>
-                </div>
-              ) : (
-                "Run Code"
-              )}
+              {loading ? "Running..." : "Run Code"}
             </button>
-
             {loading && (
               <button
                 onClick={stopExecution}
@@ -124,8 +105,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Terminal Section */}
-        <div className="ml-2 mt-16 md:mt-2 md:w-1/2 h-[45vh] md:h-[80vh] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
+        {/* Terminal */}
+        <div className="ml-2 mt-16 md:mt-2 md:w-1/2 h-[45%] md:h-[85%] p-2 bg-black text-green-400 font-mono overflow-y-auto m-2">
           <Terminal
             output={output}
             awaitingInput={awaitingInput}

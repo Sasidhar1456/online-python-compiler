@@ -2,8 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+html,body {
   @apply bg-gray-100 text-gray-800;
   background-color: #111827;
+  height: 100%;
+  width: 100%;
 }
+
+#root{
+  height: 100%;
+  width: 100%;
+}
+
+  
 
