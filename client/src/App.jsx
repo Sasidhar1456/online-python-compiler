@@ -73,7 +73,7 @@ export default function App() {
   return (
     <div className="h-full flex flex-col bg-gray-900">
       <div className="text-center py-4">
-        <h1 className="text-3xl md:text-4xl font-bold text-white">Online Python Compiler</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-white">Online Python Interpreter</h1>
       </div>
 
       <div className="flex-grow flex flex-col md:flex-row h-[90%]">
